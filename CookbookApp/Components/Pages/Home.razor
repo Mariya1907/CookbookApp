@@ -118,7 +118,7 @@
             
             if (selectedIds?.Any() == true)
             {
-                // ✅ ПРОСТОЙ ФИЛЬТР ДЛЯ ТЕСТА
+                
                 recipes = recipes.Where(r => 
                     (selectedIds.Contains(4) && r.Title.Contains("Борщ")) ||    // Мясо → Борщ
                     (selectedIds.Contains(1) && r.Title.Contains("Борщ")) ||    // Картофель → Борщ

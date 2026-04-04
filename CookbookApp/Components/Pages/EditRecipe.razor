@@ -15,7 +15,7 @@
                     <h3 class="mb-0">@(Id == null ? "➕ Новый рецепт" : "✏️ Редактировать")</h3>
                 </div>
                 <div class="card-body p-4">
-                    <!-- ✅ ПРОСТЫЕ input БЕЗ EditForm -->
+                    
                     <div class="mb-4">
                         <label class="form-label fw-bold">Название</label>
                         <input @bind="recipe.Title" class="form-control" />
@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 
-                <!-- ✅ КНОПКИ с @onclick -->
+                
                 <div class="card-footer bg-light">
                     <div class="d-flex gap-3 justify-content-end">
                         <button type="button" class="btn btn-secondary btn-lg px-5" @onclick="Cancel">
