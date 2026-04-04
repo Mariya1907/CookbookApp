@@ -1,9 +1,9 @@
 using CookbookApp.Services;
-using CookbookApp.Components;  // ✅ ДОБАВЬ ЭТО!
+using CookbookApp.Components;  
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -11,7 +11,7 @@ builder.Services.AddScoped<IRecipeService, RecipeService>();
 
 var app = builder.Build();
 
-// Configure pipeline
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);

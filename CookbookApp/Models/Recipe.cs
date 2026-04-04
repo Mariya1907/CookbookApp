@@ -21,7 +21,7 @@ public class Recipe
     public List<RecipeIngredient> Ingredients { get; set; } = new();
 }
 
-// ✅ ВСЁ В ОДНОМ ФАЙЛЕ!
+
 public class RecipeIngredient
 {
     public int IngredientId { get; set; }
