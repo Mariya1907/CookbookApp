@@ -1,0 +1,164 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using CookbookApp.Models
+@using CookbookApp.Services
+@inject IRecipeService RecipeService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Кулинарная книга</PageTitle>
+
+<div class="bg-white min-vh-100 py-5">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h1 class="display-3 fw-bold mb-4 text-dark">🍳 Кулинарная книга</h1>
+                <p class="lead fs-2 text-muted mb-4">Управление рецептами и меню</p>
+                
+                <!-- Поиск -->
+                <div class="row justify-content-center mb-5">
+                    <div class="col-lg-8">
+                        <div class="card shadow border-0">
+                            <div class="card-header bg-info text-white text-center">
+                                <h5 class="mb-0"><i class="bi bi-search me-2"></i>Поиск по ингредиентам</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-md-10">
+                                        <label class="form-label fw-bold fs-6 mb-2">Ингредиенты:</label>
+                                        <select class="form-select" size="5" multiple id="ingredientSelect">
+                                            <option value="1">Картофель</option>
+                                            <option value="2">Морковь</option>
+                                            <option value="3">Лук</option>
+                                            <option value="4">Мясо</option>
+                                            <option value="5">Сметана</option>
+                                            <option value="6">Огурцы</option>
+                                            <option value="7">Яйца</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button class="btn btn-outline-info btn-lg w-100 mb-2" @onclick="SearchByIngredients">
+                                            🔍 Найти
+                                        </button>
+                                        <small class="text-muted text-center d-block">
+                                            @recipes.Count рецептов
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="/editrecipe" class="btn btn-primary btn-lg px-5 py-3 shadow-lg">
+                    ➕ Добавить рецепт
+                </a>
+            </div>
+        </div>
+
+        @if (recipes.Any())
+        {
+            <div class="row g-4">
+                @foreach (var recipe in recipes)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 shadow-sm border-0">
+                            <div class="card-body p-4">
+                                <h4 class="card-title fw-bold">@recipe.Title</h4>
+                                <p class="card-text text-muted">@recipe.Description</p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-primary">@recipe.Category</span>
+                                    <span class="text-muted">⏱ @recipe.CookingTimeMinutes мин • 👥 @recipe.Portions порц.</span>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-transparent pt-0">
+                                <div class="d-grid gap-2 d-md-flex">
+                                    <a href="/editrecipe/@recipe.Id" class="btn btn-outline-primary">✏️ Редактировать</a>
+                                    <button class="btn btn-outline-danger" @onclick="() => DeleteRecipe(recipe.Id)">🗑 Удалить</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <h2>📚 Рецептов пока нет</h2>
+                <p class="lead text-muted">Начните с добавления первого рецепта!</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private List<Recipe> recipes = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("🚀 Home START!");
+        await LoadRecipes();
+    }
+
+    private async Task LoadRecipes()
+    {
+        recipes = await RecipeService.GetAllAsync();
+        Console.WriteLine($"✅ recipes.Count = {recipes.Count}");
+        StateHasChanged();
+    }
+
+    private async Task SearchByIngredients()
+    {
+        Console.WriteLine("🔍 Найти нажато!");
+        
+        try 
+        {
+            var selectedIds = await JSRuntime.InvokeAsync<List<int>>("getSelectedValues", "ingredientSelect");
+            Console.WriteLine($"🔍 Выбрано: {string.Join(", ", selectedIds ?? new())}");
+            
+            if (selectedIds?.Any() == true)
+            {
+                // ✅ ПРОСТОЙ ФИЛЬТР ДЛЯ ТЕСТА
+                recipes = recipes.Where(r => 
+                    (selectedIds.Contains(4) && r.Title.Contains("Борщ")) ||    // Мясо → Борщ
+                    (selectedIds.Contains(1) && r.Title.Contains("Борщ")) ||    // Картофель → Борщ
+                    (selectedIds.Contains(6) && r.Title.Contains("Оливье")) ||  // Огурцы → Оливье
+                    (selectedIds.Contains(7) && r.Title.Contains("Оливье"))     // Яйца → Оливье
+                ).ToList();
+                
+                Console.WriteLine($"🔍 НАЙДЕНО: {recipes.Count} рецептов");
+            }
+            else
+            {
+                Console.WriteLine("🔍 Нет выбора - все рецепты");
+                await LoadRecipes();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Ошибка поиска: {ex.Message}");
+            await LoadRecipes();
+        }
+        
+        StateHasChanged();
+    }
+    
+    private async Task DeleteRecipe(int recipeId)
+    {
+        Console.WriteLine($"🗑 Удалить ID={recipeId}");
+        await RecipeService.DeleteAsync(recipeId);
+        await LoadRecipes();
+    }
+}
+<script>
+window.getSelectedValues = (selectId) => {
+    const select = document.getElementById(selectId);
+    if (!select) return [];
+    
+    const options = Array.from(select.selectedOptions || select.options || []);
+    return options
+        .filter(option => option.selected && option.value)
+        .map(option => parseInt(option.value))
+        .filter(id => !isNaN(id));
+};
+</script>

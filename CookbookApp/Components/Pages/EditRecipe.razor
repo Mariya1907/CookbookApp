@@ -1,0 +1,106 @@
+@page "/editrecipe/{Id:int?}"
+@rendermode InteractiveServer
+@using CookbookApp.Models
+@using CookbookApp.Services
+
+@inject IRecipeService RecipeService
+@inject NavigationManager Navigation
+
+<PageTitle>@(Id == null ? "➕ Новый рецепт" : "✏️ Редактировать")</PageTitle>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">@(Id == null ? "➕ Новый рецепт" : "✏️ Редактировать")</h3>
+                </div>
+                <div class="card-body p-4">
+                    <!-- ✅ ПРОСТЫЕ input БЕЗ EditForm -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Название</label>
+                        <input @bind="recipe.Title" class="form-control" />
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label">Категория</label>
+                            <select @bind="recipe.Category" class="form-select">
+                                <option value="">Выберите...</option>
+                                <option value="Первое">Первое</option>
+                                <option value="Второе">Второе</option>
+                                <option value="Салат">Салат</option>
+                                <option value="Закуски">Закуски</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Время (мин)</label>
+                            <input type="number" @bind="recipe.CookingTimeMinutes" class="form-control" min="1" />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Порции</label>
+                            <input type="number" @bind="recipe.Portions" class="form-control" min="1" />
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Описание</label>
+                        <textarea @bind="recipe.Description" rows="3" class="form-control"></textarea>
+                    </div>
+                </div>
+                
+                <!-- ✅ КНОПКИ с @onclick -->
+                <div class="card-footer bg-light">
+                    <div class="d-flex gap-3 justify-content-end">
+                        <button type="button" class="btn btn-secondary btn-lg px-5" @onclick="Cancel">
+                            ❌ Отмена
+                        </button>
+                        <button type="button" class="btn btn-success btn-lg px-5" @onclick="SaveRecipe">
+                            💾 Создать
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    private Recipe recipe = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine($"🔄 EditRecipe: Id={Id}");
+        
+        if (!Id.HasValue)
+        {
+            recipe = new Recipe 
+            { 
+                CookingTimeMinutes = 30, 
+                Portions = 4 
+            };
+        }
+    }
+
+    private async Task SaveRecipe()
+    {
+        Console.WriteLine($"💾 SAVE: {recipe.Title} | {recipe.Category}");
+        
+        try
+        {
+            var newId = await RecipeService.AddAsync(recipe);
+            Console.WriteLine($"✅ ADDED ID={newId}");
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ ERROR: {ex.Message}");
+        }
+    }
+
+    private void Cancel()
+    {
+        Console.WriteLine("❌ CANCEL!");
+        Navigation.NavigateTo("/");
+    }
+}
