@@ -15,6 +15,7 @@ C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\CookbookApp.As
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\CookbookApp.AssemblyInfo.cs
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\CookbookApp.csproj.CoreCompileInputs.cache
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\CookbookApp.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\CookbookApp.sourcelink.json
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\rjimswa.dswa.cache.json
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\rjsmrazor.dswa.cache.json
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\rjsmcshtml.dswa.cache.json
@@ -24,6 +25,7 @@ C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\scopedcss\Comp
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\scopedcss\bundle\CookbookApp.styles.css
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\scopedcss\projectbundle\CookbookApp.bundle.scp.css
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\compressed\a1pvasijea-{0}-khy4lop6wu-khy4lop6wu.gz
+C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\compressed\wzef0418jr-{0}-2kab1sr3fn-2kab1sr3fn.gz
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\compressed\1jrdema8iu-{0}-bqjiyaj88i-bqjiyaj88i.gz
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\compressed\llefi3k0e0-{0}-c2jlpeoesf-c2jlpeoesf.gz
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\compressed\f7bapk8w06-{0}-erw9l3u2r3-erw9l3u2r3.gz
@@ -83,4 +85,3 @@ C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\refint\Cookboo
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\CookbookApp.pdb
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\CookbookApp.genruntimeconfig.cache
 C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\ref\CookbookApp.dll
-C:\Users\Mariya\Desktop\CookbookApp\CookbookApp\obj\Debug\net10.0\compressed\wzef0418jr-{0}-2kab1sr3fn-2kab1sr3fn.gz

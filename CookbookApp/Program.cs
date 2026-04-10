@@ -1,8 +1,7 @@
 using CookbookApp.Services;
-using CookbookApp.Components;  
+using CookbookApp.Components;  // ← App.razor в Components!
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
@@ -10,7 +9,6 @@ builder.Services.AddRazorComponents()
 builder.Services.AddScoped<IRecipeService, RecipeService>();
 
 var app = builder.Build();
-
 
 if (!app.Environment.IsDevelopment())
 {
@@ -22,7 +20,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseAntiforgery();
 
-app.MapRazorComponents<App>()
+app.MapRazorComponents<App>()  // ← ПРОСТО App (из Components)
     .AddInteractiveServerRenderMode();
 
-app.Run();
+Console.WriteLine("🚀 http://localhost:5000");
+app.Run("http://localhost:5000");

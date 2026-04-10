@@ -2,11 +2,12 @@
 @rendermode InteractiveServer
 @using CookbookApp.Models
 @using CookbookApp.Services
-
 @inject IRecipeService RecipeService
+@inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
 
 <PageTitle>@(Id == null ? "➕ Новый рецепт" : "✏️ Редактировать")</PageTitle>
+
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-lg-8">
@@ -15,12 +16,11 @@
                     <h3 class="mb-0">@(Id == null ? "➕ Новый рецепт" : "✏️ Редактировать")</h3>
                 </div>
                 <div class="card-body p-4">
-                    
                     <div class="mb-4">
                         <label class="form-label fw-bold">Название</label>
                         <input @bind="recipe.Title" class="form-control" />
                     </div>
-                    
+
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label">Категория</label>
@@ -41,21 +41,41 @@
                             <input type="number" @bind="recipe.Portions" class="form-control" min="1" />
                         </div>
                     </div>
-                    
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Ингредиенты (Ctrl+Click):</label>
+                        <select multiple class="form-select" size="6" id="ingredientEditSelect">
+                            <option value="1">🥔 Картофель</option>
+                            <option value="2">🥕 Морковь</option>
+                            <option value="3">🧅 Лук</option>
+                            <option value="4">🥩 Мясо</option>
+                            <option value="5">🥛 Сметана</option>
+                            <option value="6">🥒 Огурцы</option>
+                            <option value="7">🥚 Яйца</option>
+                        </select>
+                        <button class="btn btn-outline-primary mt-2 w-100" @onclick="UpdateIngredientsFromSelect">
+                            🔄 Обновить ингредиенты (@selectedCount шт.)
+                        </button>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Выбрано: <span class="badge bg-success">@selectedIngredientNames</span>
+                            </small>
+                        </div>
+                    </div>
+
                     <div class="mb-4">
                         <label class="form-label">Описание</label>
                         <textarea @bind="recipe.Description" rows="3" class="form-control"></textarea>
                     </div>
                 </div>
-                
-                
+
                 <div class="card-footer bg-light">
                     <div class="d-flex gap-3 justify-content-end">
                         <button type="button" class="btn btn-secondary btn-lg px-5" @onclick="Cancel">
                             ❌ Отмена
                         </button>
                         <button type="button" class="btn btn-success btn-lg px-5" @onclick="SaveRecipe">
-                            💾 Создать
+                            💾 @(Id == null ? "Создать" : "Сохранить")
                         </button>
                     </div>
                 </div>
@@ -67,40 +87,101 @@
 @code {
     [Parameter] public int? Id { get; set; }
     private Recipe recipe = new();
+    private int selectedCount = 0;
+    private string selectedIngredientNames = "0";
 
     protected override async Task OnInitializedAsync()
     {
         Console.WriteLine($"🔄 EditRecipe: Id={Id}");
         
-        if (!Id.HasValue)
+        if (Id.HasValue)
+        {
+            recipe = await RecipeService.GetByIdAsync(Id.Value) ?? new Recipe();
+            await LoadSelectedIngredients();
+        }
+        else
         {
             recipe = new Recipe 
             { 
                 CookingTimeMinutes = 30, 
-                Portions = 4 
+                Portions = 4, 
+                Ingredients = new List<RecipeIngredient>() 
             };
         }
     }
 
+    private async Task LoadSelectedIngredients()
+    {
+        selectedCount = recipe.Ingredients?.Count ?? 0;
+        selectedIngredientNames = selectedCount switch
+        {
+            0 => "0",
+            1 => recipe.Ingredients![0].Name,
+            _ => $"{selectedCount} шт."
+        };
+    }
+
+    private async Task UpdateIngredientsFromSelect()
+    {
+        var selectedIds = await JSRuntime.InvokeAsync<List<int>>("getSelectedValues", "ingredientEditSelect");
+        Console.WriteLine($"🔍 ВЫБРАНО: [{string.Join(", ", selectedIds)}] ({selectedIds.Count})");
+        
+        recipe.Ingredients ??= new List<RecipeIngredient>();
+        recipe.Ingredients.Clear();
+        
+        foreach(int id in selectedIds)
+        {
+            recipe.Ingredients.Add(new RecipeIngredient 
+            { 
+                IngredientId = id,
+                Name = GetIngredientName(id),
+                Amount = ""
+            });
+        }
+        
+        selectedCount = selectedIds.Count;
+        selectedIngredientNames = selectedIds switch
+        {
+            [] => "0",
+            [var firstId] => GetIngredientName(firstId),
+            _ => $"{selectedIds.Count} шт."
+        };
+        
+        Console.WriteLine($"✅ recipe.Ingredients: {recipe.Ingredients.Count}");
+        StateHasChanged();
+    }
+
+    private string GetIngredientName(int id) => id switch
+    {
+        1 => "🥔 Картофель",
+        2 => "🥕 Морковь", 
+        3 => "🧅 Лук", 
+        4 => "🥩 Мясо", 
+        5 => "🥛 Сметана", 
+        6 => "🥒 Огурцы", 
+        7 => "🥚 Яйца", 
+        _ => "❓ Неизвестно"
+    };
+
     private async Task SaveRecipe()
     {
-        Console.WriteLine($"💾 SAVE: {recipe.Title} | {recipe.Category}");
-        
+        Console.WriteLine($"💾 SAVE: '{recipe.Title}' | Ингредиенты: {recipe.Ingredients?.Count ?? 0}");
         try
         {
-            var newId = await RecipeService.AddAsync(recipe);
-            Console.WriteLine($"✅ ADDED ID={newId}");
+            if (Id.HasValue) 
+                await RecipeService.UpdateAsync(recipe);
+            else 
+            {
+                var newId = await RecipeService.AddAsync(recipe);
+                Console.WriteLine($"✅ СОЗДАН recipe ID={newId}");
+            }
             Navigation.NavigateTo("/");
         }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ ERROR: {ex.Message}");
+        catch (Exception ex) 
+        { 
+            Console.WriteLine($"❌ ОШИБКА: {ex.Message}"); 
         }
     }
 
-    private void Cancel()
-    {
-        Console.WriteLine("❌ CANCEL!");
-        Navigation.NavigateTo("/");
-    }
+    private void Cancel() => Navigation.NavigateTo("/");
 }

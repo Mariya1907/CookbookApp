@@ -13,7 +13,7 @@
             <div class="col-lg-8 text-center">
                 <h1 class="display-3 fw-bold mb-4 text-dark">🍳 Кулинарная книга</h1>
                 <p class="lead fs-2 text-muted mb-4">Управление рецептами и меню</p>
-                
+
                 <!-- Поиск -->
                 <div class="row justify-content-center mb-5">
                     <div class="col-lg-8">
@@ -26,13 +26,13 @@
                                     <div class="col-md-10">
                                         <label class="form-label fw-bold fs-6 mb-2">Ингредиенты:</label>
                                         <select class="form-select" size="5" multiple id="ingredientSelect">
-                                            <option value="1">Картофель</option>
-                                            <option value="2">Морковь</option>
-                                            <option value="3">Лук</option>
-                                            <option value="4">Мясо</option>
-                                            <option value="5">Сметана</option>
-                                            <option value="6">Огурцы</option>
-                                            <option value="7">Яйца</option>
+                                            <option value="1">🥔 Картофель</option>
+                                            <option value="2">🥕 Морковь</option>
+                                            <option value="3">🧅 Лук</option>
+                                            <option value="4">🥩 Мясо</option>
+                                            <option value="5">🥛 Сметана</option>
+                                            <option value="6">🥒 Огурцы</option>
+                                            <option value="7">🥚 Яйца</option>
                                         </select>
                                     </div>
                                     <div class="col-md-2">
@@ -69,6 +69,15 @@
                                     <span class="badge bg-primary">@recipe.Category</span>
                                     <span class="text-muted">⏱ @recipe.CookingTimeMinutes мин • 👥 @recipe.Portions порц.</span>
                                 </div>
+                                @if (recipe.Ingredients.Any())
+                                {
+                                    <div class="mt-2">
+                                        <small class="text-success">
+                                            Ингредиенты: @string.Join(", ", recipe.Ingredients.Take(3).Select(i => i.Name))
+                                            @(recipe.Ingredients.Count > 3 ? "..." : "")
+                                        </small>
+                                    </div>
+                                }
                             </div>
                             <div class="card-footer bg-transparent pt-0">
                                 <div class="d-grid gap-2 d-md-flex">
@@ -91,6 +100,8 @@
     </div>
 </div>
 
+
+
 @code {
     private List<Recipe> recipes = new();
 
@@ -98,54 +109,47 @@
     {
         Console.WriteLine("🚀 Home START!");
         await LoadRecipes();
+        
+        // ✅ НОВЫЙ КОД ДИАГНОСТИКИ
+        foreach(var recipe in recipes)
+        {
+            Console.WriteLine($"📝 РЕЦЕПТ: '{recipe.Title}'");
+            Console.WriteLine($"   Описание: '{recipe.Description ?? "ПУСТО"}'");
+            Console.WriteLine($"   Ингредиенты ({recipe.Ingredients?.Count ?? 0}):");
+            
+            if (recipe.Ingredients != null && recipe.Ingredients.Any())
+            {
+                foreach(var ing in recipe.Ingredients)
+                {
+                    Console.WriteLine($"     • ID={ing.IngredientId} '{ing.Name}' ({ing.Amount})");
+                }
+            }
+            else
+            {
+                Console.WriteLine("     ❌ ИНГРЕДИЕНТЫ ОТСУТСТВУЮТ!");
+            }
+            Console.WriteLine("   ---");
+        }
     }
 
     private async Task LoadRecipes()
     {
         recipes = await RecipeService.GetAllAsync();
         Console.WriteLine($"✅ recipes.Count = {recipes.Count}");
-        StateHasChanged();
     }
 
     private async Task SearchByIngredients()
     {
-        Console.WriteLine("🔍 Найти нажато!");
+        var selectedIds = await JSRuntime.InvokeAsync<List<int>>("getSelectedValues", "ingredientSelect");
+        Console.WriteLine($"🔍 Ищем по ID: [{string.Join(", ", selectedIds)}]");
         
-        try 
-        {
-            var selectedIds = await JSRuntime.InvokeAsync<List<int>>("getSelectedValues", "ingredientSelect");
-            Console.WriteLine($"🔍 Выбрано: {string.Join(", ", selectedIds ?? new())}");
-            
-            if (selectedIds?.Any() == true)
-            {
-                
-                recipes = recipes.Where(r => 
-                    (selectedIds.Contains(4) && r.Title.Contains("Борщ")) ||    // Мясо → Борщ
-                    (selectedIds.Contains(1) && r.Title.Contains("Борщ")) ||    // Картофель → Борщ
-                    (selectedIds.Contains(6) && r.Title.Contains("Оливье")) ||  // Огурцы → Оливье
-                    (selectedIds.Contains(7) && r.Title.Contains("Оливье"))     // Яйца → Оливье
-                ).ToList();
-                
-                Console.WriteLine($"🔍 НАЙДЕНО: {recipes.Count} рецептов");
-            }
-            else
-            {
-                Console.WriteLine("🔍 Нет выбора - все рецепты");
-                await LoadRecipes();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Ошибка поиска: {ex.Message}");
-            await LoadRecipes();
-        }
-        
+        recipes = await RecipeService.SearchByIngredientsAsync(selectedIds);
+        Console.WriteLine($"✅ НАЙДЕНО: {recipes.Count} рецептов");
         StateHasChanged();
     }
-    
+
     private async Task DeleteRecipe(int recipeId)
     {
-        Console.WriteLine($"🗑 Удалить ID={recipeId}");
         await RecipeService.DeleteAsync(recipeId);
         await LoadRecipes();
     }
@@ -155,9 +159,9 @@ window.getSelectedValues = (selectId) => {
     const select = document.getElementById(selectId);
     if (!select) return [];
     
-    const options = Array.from(select.selectedOptions || select.options || []);
-    return options
-        .filter(option => option.selected && option.value)
+    const selectedOptions = Array.from(select.selectedOptions);
+    return selectedOptions
+        .filter(option => option.value)
         .map(option => parseInt(option.value))
         .filter(id => !isNaN(id));
 };
